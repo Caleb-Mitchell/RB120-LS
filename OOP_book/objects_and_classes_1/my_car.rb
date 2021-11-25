@@ -1,0 +1,2 @@
+class MyCar
+end
