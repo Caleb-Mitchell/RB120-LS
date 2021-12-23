@@ -1,0 +1,230 @@
+require 'pry'
+
+class Score
+  attr_accessor :total
+
+  WINNING_SCORE = 3
+
+  def initialize
+    @total = 0
+  end
+
+  def winner?
+    @total == WINNING_SCORE
+  end
+end
+
+class Move
+  VALUES = ['rock', 'paper', 'scissors']
+
+  def initialize(value)
+    @value = value
+  end
+
+  def scissors?
+    @value == 'scissors'
+  end
+
+  def rock?
+    @value == 'rock'
+  end
+
+  def paper?
+    @value == 'paper'
+  end
+
+  def >(other_move)
+    (rock? && other_move.scissors?) ||
+      (paper? && other_move.rock?) ||
+      (scissors? && other_move.paper?)
+  end
+
+  def <(other_move)
+    (rock? && other_move.paper?) ||
+      (paper? && other_move.scissors?) ||
+      (scissors? && other_move.rock?)
+  end
+
+  def to_s
+    @value
+  end
+end
+
+class Player
+  attr_accessor :move, :name
+
+  def initialize
+    set_name
+  end
+end
+
+class Human < Player
+  def set_name
+    n = ''
+    loop do
+      puts "What's your name?"
+      n = gets.chomp
+      break unless n.empty?
+      puts "Sorry, must enter a value."
+    end
+    self.name = n
+  end
+
+  def choose
+    choice = nil
+    loop do
+      puts "\nPlease choose rock, paper, or scissors:"
+      choice = gets.chomp
+      break if Move::VALUES.include? choice
+      puts "Sorry, invalid choice."
+    end
+    self.move = Move.new(choice)
+  end
+end
+
+class Computer < Player
+  COMP_NAMES = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5']
+
+  def set_name
+    self.name = COMP_NAMES.sample
+  end
+
+  def choose
+    self.move = Move.new(Move::VALUES.sample)
+  end
+end
+
+# Game Orchestration Engine
+class RPSGame
+  attr_accessor :human, :computer, :human_score, :computer_score
+
+  def initialize
+    @human = Human.new
+    @human_score = Score.new
+    @computer = Computer.new
+    @computer_score = Score.new
+  end
+
+  def clear_screen
+    puts "\e[H\e[2J"
+  end
+
+  def display_welcome_message
+    puts "Welcome to Rock, Paper, Scissors #{human.name}!"
+  end
+
+  def display_goodbye_message
+    puts "\nThanks for playing Rock, Paper, Scissors. Good bye!"
+  end
+
+  def display_moves
+    puts "#{human.name} chose #{human.move}."
+    puts "#{computer.name} chose #{computer.move}."
+  end
+
+  def display_winner
+    if human.move > computer.move
+      puts "\n#{human.name} won!"
+    elsif human.move < computer.move
+      puts "\n#{computer.name} won!"
+    else
+      puts "\nIt's a tie!"
+    end
+  end
+
+  def display_grand_winner
+    if human_score.winner?
+      puts "\n#{human.name} is the grand winner!"
+    elsif computer_score.winner?
+      puts "\nSorry, #{computer.name} is the grand winner!"
+    end
+  end
+
+  def increment_score!
+    if human.move > computer.move
+      human_score.total += 1
+    elsif human.move < computer.move
+      computer_score.total += 1
+    end
+  end
+
+  def grand_winner?
+    human_score.winner? || computer_score.winner?
+  end
+
+  def reset_score
+    human_score.total = 0
+    computer_score.total = 0
+  end
+
+  def play_again?
+    answer = nil
+    loop do
+      puts "\nWould you like to play again? (y/n)"
+      answer = gets.chomp
+      break if ['y', 'n'].include? answer.downcase
+      puts "\nSorry, must be y or n."
+    end
+
+    return false if answer.downcase == 'n'
+    return true if answer.downcase == 'y'
+  end
+
+  # Set padding to either the longest possible computer name in random pool of
+  # names, or human name, whichever is longer.
+  def find_score_padding(name)
+    all_names = Computer::COMP_NAMES.dup << human.name
+    longest_name = all_names.max_by(&:length)
+    1 + (longest_name.length - name.length)
+  end
+
+  def add_score_padding(score, name)
+    score.to_s.rjust(find_score_padding(name))
+  end
+
+  def display_score
+    puts "\nCurrent Score:"
+    puts "#{human.name}: \
+      #{add_score_padding(human_score.total, human.name)}"
+    puts "#{computer.name}: \
+      #{add_score_padding(computer_score.total, computer.name)}"
+  end
+
+  def start_game
+    clear_screen
+    display_welcome_message
+  end
+
+  def display_round_info
+    display_moves
+    display_score
+    display_winner
+  end
+
+  def play_round
+    human.choose
+    computer.choose
+
+    increment_score!
+
+    clear_screen
+    display_round_info
+  end
+
+  def play
+    loop do
+      start_game
+
+      until grand_winner?
+        play_round
+      end
+      display_grand_winner
+
+      reset_score
+      break unless play_again?
+    end
+    display_goodbye_message
+  end
+end
+
+RPSGame.new.play
