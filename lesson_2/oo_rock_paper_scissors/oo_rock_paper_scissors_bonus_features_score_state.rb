@@ -1,19 +1,3 @@
-require 'pry'
-
-class Score
-  attr_accessor :total
-
-  WINNING_SCORE = 3
-
-  def initialize
-    @total = 0
-  end
-
-  def winner?
-    @total == WINNING_SCORE
-  end
-end
-
 class Move
   VALUES = ['rock', 'paper', 'scissors']
 
@@ -51,10 +35,17 @@ class Move
 end
 
 class Player
-  attr_accessor :move, :name
+  attr_accessor :move, :name, :score
+
+  WINNING_SCORE = 3
 
   def initialize
     set_name
+    @score = 0
+  end
+
+  def winner?
+    score == WINNING_SCORE
   end
 end
 
@@ -96,13 +87,11 @@ end
 
 # Game Orchestration Engine
 class RPSGame
-  attr_accessor :human, :computer, :human_score, :computer_score
+  attr_accessor :human, :computer
 
   def initialize
     @human = Human.new
-    @human_score = Score.new
     @computer = Computer.new
-    @computer_score = Score.new
   end
 
   def clear_screen
@@ -133,28 +122,28 @@ class RPSGame
   end
 
   def display_grand_winner
-    if human_score.winner?
+    if human.winner?
       puts "\n#{human.name} is the grand winner!"
-    elsif computer_score.winner?
+    elsif computer.winner?
       puts "\nSorry, #{computer.name} is the grand winner!"
     end
   end
 
   def increment_score!
     if human.move > computer.move
-      human_score.total += 1
+      human.score += 1
     elsif human.move < computer.move
-      computer_score.total += 1
+      computer.score += 1
     end
   end
 
   def grand_winner?
-    human_score.winner? || computer_score.winner?
+    human.winner? || computer.winner?
   end
 
   def reset_score
-    human_score.total = 0
-    computer_score.total = 0
+    human.score = 0
+    computer.score = 0
   end
 
   def play_again?
@@ -171,7 +160,7 @@ class RPSGame
   end
 
   # Set padding to either the longest possible computer name in random pool of
-  # names, or human name, whichever is longer.
+  # computer names, or human name, whichever is longer.
   def find_score_padding(name)
     all_names = Computer::COMP_NAMES.dup << human.name
     longest_name = all_names.max_by(&:length)
@@ -185,9 +174,9 @@ class RPSGame
   def display_score
     puts "\nCurrent Score:"
     puts "#{human.name}: \
-      #{add_score_padding(human_score.total, human.name)}"
+      #{add_score_padding(human.score, human.name)}"
     puts "#{computer.name}: \
-      #{add_score_padding(computer_score.total, computer.name)}"
+      #{add_score_padding(computer.score, computer.name)}"
   end
 
   def start_game
