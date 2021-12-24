@@ -1,5 +1,16 @@
+require 'pry'
+# TODO: add text "spock vaporizes rock" when spock wins, etc.
+# TODO: make it look better like original implementation
+
 class Move
-  VALUES = ['rock', 'paper', 'scissors']
+  WINNING_MOVES = {
+    'rock' => ['scissors', 'lizard'],
+    'paper' => ['rock', 'spock'],
+    'scissors' => ['paper', 'lizard'],
+    'spock' => ['rock', 'scissors'],
+    'lizard' => ['paper', 'spock']
+  }
+  VALID_CHOICES = WINNING_MOVES.keys()
 
   def initialize(value)
     @value = value
@@ -17,21 +28,37 @@ class Move
     @value == 'paper'
   end
 
+  def lizard?
+    @value = 'lizard'
+  end
+
+  def spock?
+    @value = 'spock'
+  end
+
+  def win?(first, second)
+    WINNING_MOVES[first].include?(second)
+  end
+
+  def lose?(first, second)
+    WINNING_MOVES[second].include?(first)
+  end
+
   def >(other_move)
-    (rock? && other_move.scissors?) ||
-      (paper? && other_move.rock?) ||
-      (scissors? && other_move.paper?)
+    win?(@value, other_move.value)
   end
 
   def <(other_move)
-    (rock? && other_move.paper?) ||
-      (paper? && other_move.scissors?) ||
-      (scissors? && other_move.rock?)
+    lose?(@value, other_move.value)
   end
 
   def to_s
     @value
   end
+
+  protected
+
+  attr_reader :value
 end
 
 class Player
@@ -64,9 +91,9 @@ class Human < Player
   def choose
     choice = nil
     loop do
-      puts "\nPlease choose rock, paper, or scissors:"
+      puts "\nPlease choose rock, paper, scissors, lizard, or spock:"
       choice = gets.chomp
-      break if Move::VALUES.include? choice
+      break if Move::VALID_CHOICES.include? choice
       puts "Sorry, invalid choice."
     end
     self.move = Move.new(choice)
@@ -81,7 +108,7 @@ class Computer < Player
   end
 
   def choose
-    self.move = Move.new(Move::VALUES.sample)
+    self.move = Move.new(Move::VALID_CHOICES.sample)
   end
 end
 
