@@ -16,26 +16,6 @@ class Move
     @value = value
   end
 
-  def rock?
-    @value == 'rock'
-  end
-
-  def paper?
-    @value == 'paper'
-  end
-
-  def scissors?
-    @value == 'scissors'
-  end
-
-  def lizard?
-    @value = 'lizard'
-  end
-
-  def spock?
-    @value = 'spock'
-  end
-
   def win?(first, second)
     WINNING_MOVES[first].include?(second)
   end
