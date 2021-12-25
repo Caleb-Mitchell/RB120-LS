@@ -2,6 +2,10 @@ require 'pry'
 # TODO: add text "spock vaporizes rock" when spock wins, etc.
 # TODO: make it look better like original implementation
 
+# If there is one class for each move, that all inherit from a Move superclass,
+# this would allow us to change the values that are initialized for each move
+# object under the hood if we wanted to.
+
 class Move
   WINNING_MOVES = {
     'rock' => ['scissors', 'lizard'],
@@ -12,28 +16,10 @@ class Move
   }
   VALID_CHOICES = WINNING_MOVES.keys()
 
+  # When passed 'rock', want to create a new rock object,
+  # with 'rock' as its value in state.
   def initialize(value)
-    @value = value
-  end
-
-  def rock?
-    @value == 'rock'
-  end
-
-  def paper?
-    @value == 'paper'
-  end
-
-  def scissors?
-    @value == 'scissors'
-  end
-
-  def lizard?
-    @value = 'lizard'
-  end
-
-  def spock?
-    @value = 'spock'
+    @value = Object.const_get(value.capitalize).new.value
   end
 
   def win?(first, second)
@@ -59,6 +45,36 @@ class Move
   protected
 
   attr_reader :value
+end
+
+class Rock < Move
+  def initialize
+    @value = 'rock'
+  end
+end
+
+class Paper < Move
+  def initialize
+    @value = 'paper'
+  end
+end
+
+class Scissors < Move
+  def initialize
+    @value = 'scissors'
+  end
+end
+
+class Lizard < Move
+  def initialize
+    @value = 'lizard'
+  end
+end
+
+class Spock < Move
+  def initialize
+    @value = 'spock'
+  end
 end
 
 class Player
