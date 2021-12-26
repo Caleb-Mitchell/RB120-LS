@@ -43,17 +43,32 @@ end
 
 class Player
   attr_accessor :move, :name, :score
+  attr_reader :move_history
 
   WINNING_SCORE = 3
 
   def initialize
     set_name
     @score = 0
+    @move_history = []
   end
 
   def winner?
     score == WINNING_SCORE
   end
+
+  def move_history
+    @move_history
+  end
+
+  def add_to_history!(move)
+    self.move_history << move
+  end
+
+  def display_move_history
+    "\nMove history for #{name}: \n=> #{move_history.join(", ")}."
+  end
+
 end
 
 class Human < Player
@@ -77,6 +92,8 @@ class Human < Player
       puts "Sorry, invalid choice."
     end
     self.move = Move.new(choice)
+
+    add_to_history!(choice)
   end
 end
 
@@ -88,7 +105,10 @@ class Computer < Player
   end
 
   def choose
-    self.move = Move.new(Move::VALID_CHOICES.sample)
+    choice = Move::VALID_CHOICES.sample
+    self.move = Move.new(choice)
+
+    add_to_history!(choice)
   end
 end
 
@@ -134,6 +154,12 @@ class RPSGame
     elsif computer.winner?
       puts "\nSorry, #{computer.name} is the grand winner!"
     end
+  end
+
+  def display_move_records
+    puts human.display_move_history
+    puts computer.display_move_history
+    puts
   end
 
   def increment_score!
@@ -213,8 +239,10 @@ class RPSGame
 
       until grand_winner?
         play_round
+        # binding.pry
       end
       display_grand_winner
+      display_move_records
 
       reset_score
       break unless play_again?
