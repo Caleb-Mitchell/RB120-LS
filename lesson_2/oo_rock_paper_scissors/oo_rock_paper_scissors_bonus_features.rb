@@ -43,7 +43,7 @@ end
 
 class Player
   attr_accessor :move, :name, :score
-  attr_reader :move_history
+  attr_accessor :move_history
 
   WINNING_SCORE = 3
 
@@ -68,7 +68,6 @@ class Player
   def display_move_history
     "\nMove history for #{name}: \n=> #{move_history.join(", ")}."
   end
-
 end
 
 class Human < Player
@@ -100,16 +99,43 @@ end
 class Computer < Player
   COMP_NAMES = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5']
 
+  def initialize
+    super()
+    set_personality
+  end
+
   def set_name
     self.name = COMP_NAMES.sample
   end
 
-  def choose
-    choice = Move::VALID_CHOICES.sample
-    self.move = Move.new(choice)
-
-    add_to_history!(choice)
+  def set_personality
+    case name
+    when 'R2D2'    then self.personality = :always_rock
+    when 'Hal'     then self.personality = :often_scissors_no_paper
+    when 'Chappie' then self.personality = :always_paper
+    else                self.personality = :neutral
+    end
   end
+
+  def apply_personality
+    case personality
+    when :always_rock then 'rock'
+    when :often_scissors_no_paper then ['scissors', 'scissors', 'scissors', 'rock'].sample
+    when :always_paper then 'paper'
+    when :neutral then Move::VALID_CHOICES.sample
+    end
+  end
+
+  def choose
+    personality_choice = apply_personality
+    self.move = Move.new(personality_choice)
+
+    add_to_history!(personality_choice)
+  end
+
+  private
+
+  attr_accessor :personality
 end
 
 # Game Orchestration Engine
@@ -179,6 +205,11 @@ class RPSGame
     computer.score = 0
   end
 
+  def reset_move_records
+    human.move_history = []
+    computer.move_history = []
+  end
+
   def play_again?
     answer = nil
     loop do
@@ -233,18 +264,28 @@ class RPSGame
     display_round_info
   end
 
+  def set_new_computer
+    self.computer = Computer.new
+  end
+
+  def reset_game
+    reset_score
+    reset_move_records
+    set_new_computer
+  end
+
   def play
     loop do
       start_game
 
       until grand_winner?
         play_round
-        # binding.pry
       end
+
       display_grand_winner
       display_move_records
+      reset_game
 
-      reset_score
       break unless play_again?
     end
     display_goodbye_message
