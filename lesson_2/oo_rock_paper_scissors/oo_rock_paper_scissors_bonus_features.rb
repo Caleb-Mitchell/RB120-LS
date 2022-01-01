@@ -119,10 +119,10 @@ class Computer < Player
 
   def apply_personality
     case personality
-    when :always_rock then 'rock'
+    when :always_rock             then 'rock'
     when :often_scissors_no_paper then ['scissors', 'scissors', 'scissors', 'rock'].sample
-    when :always_paper then 'paper'
-    when :neutral then Move::VALID_CHOICES.sample
+    when :always_paper            then 'paper'
+    when :neutral                 then Move::VALID_CHOICES.sample
     end
   end
 

@@ -17,6 +17,7 @@
     PLayer class.
 
     
+    TODO: Do i need '!' for updating methods?
 %% # TODO: make attr method for personality private?
 %% # TODO: find bug? ( I THINK I FOUND )
 %% # TODO: clear record each game
