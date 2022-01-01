@@ -1,5 +1,3 @@
-# TODO: add text "spock vaporizes rock" when spock wins, etc.
-
 class Move
   WINNING_MOVES = {
     'rock' => ['scissors', 'lizard'],
@@ -155,7 +153,7 @@ class RPSGame
 
   def display_welcome_message
   welcome_message = <<-MSG
-Welcome to Rock-Paper-Scissors-Lizard-Spock #{human.name}!"
+Welcome to Rock-Paper-Scissors-Lizard-Spock #{human.name}!
    ---------------------
    The rules are simple...
    Choose your "hand signal", and see if you beat the computer's choice!
