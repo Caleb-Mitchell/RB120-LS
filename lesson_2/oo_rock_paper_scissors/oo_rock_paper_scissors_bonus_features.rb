@@ -1,6 +1,4 @@
-require 'pry'
 # TODO: add text "spock vaporizes rock" when spock wins, etc.
-# TODO: make it look better like original implementation
 
 class Move
   WINNING_MOVES = {
@@ -85,7 +83,7 @@ class Human < Player
   def choose
     choice = nil
     loop do
-      puts "\nPlease choose rock, paper, scissors, lizard, or spock:"
+      puts "\n=> Please choose rock, paper, scissors, lizard, or spock:"
       choice = gets.chomp
       break if Move::VALID_CHOICES.include? choice
       puts "Sorry, invalid choice."
@@ -151,8 +149,25 @@ class RPSGame
     puts "\e[H\e[2J"
   end
 
+  def prompt(message)
+    puts "=> #{message}"
+  end
+
   def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors #{human.name}!"
+  welcome_message = <<-MSG
+Welcome to Rock-Paper-Scissors-Lizard-Spock #{human.name}!"
+   ---------------------
+   The rules are simple...
+   Choose your "hand signal", and see if you beat the computer's choice!
+   ---------------------
+   Scissors cuts Paper covers Rock crushes
+   Lizard poisons Spock smashes Scissors
+   decapitates Lizard eats Paper disproves
+   Spock vaporizes Rock crushes Scissors
+   ---------------------
+  MSG
+
+    prompt welcome_message
   end
 
   def display_goodbye_message
@@ -172,6 +187,7 @@ class RPSGame
     else
       puts "\nIt's a tie!"
     end
+    puts "\n\n"
   end
 
   def display_grand_winner
