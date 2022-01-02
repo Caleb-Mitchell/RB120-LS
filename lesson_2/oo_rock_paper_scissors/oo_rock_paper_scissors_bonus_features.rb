@@ -53,16 +53,12 @@ class Player
     score == WINNING_SCORE
   end
 
-  def move_history
-    @move_history
-  end
-
   def add_to_history!(move)
-    self.move_history << move
+    move_history << move
   end
 
   def display_move_history
-    "\nMove history for #{name}: \n=> #{move_history.join(", ")}."
+    "\nMove history for #{name}: \n=> #{move_history.join(', ')}."
   end
 end
 
@@ -105,18 +101,18 @@ class Computer < Player
   end
 
   def set_personality
-    case name
-    when 'R2D2'    then self.personality = :always_rock
-    when 'Hal'     then self.personality = :often_scissors_no_paper
-    when 'Chappie' then self.personality = :always_paper
-    else                self.personality = :neutral
-    end
+    self.personality = case name
+                       when 'R2D2'    then :always_rock
+                       when 'Hal'     then :often_scissors_no_paper
+                       when 'Chappie' then :always_paper
+                       else                :neutral
+                       end
   end
 
   def apply_personality
     case personality
     when :always_rock             then 'rock'
-    when :often_scissors_no_paper then ['scissors', 'scissors', 'scissors', 'rock'].sample
+    when :often_scissors_no_paper then ((['scissors'] * 3) + ['rock']).sample
     when :always_paper            then 'paper'
     when :neutral                 then Move::VALID_CHOICES.sample
     end
@@ -151,22 +147,24 @@ class RPSGame
     puts "=> #{message}"
   end
 
+  # rubocop:disable Metrics/MethodLength
   def display_welcome_message
-  welcome_message = <<-MSG
-Welcome to Rock-Paper-Scissors-Lizard-Spock #{human.name}!
-   ---------------------
-   The rules are simple...
-   Choose your "hand signal", and see if you beat the computer's choice!
-   ---------------------
-   Scissors cuts Paper covers Rock crushes
-   Lizard poisons Spock smashes Scissors
-   decapitates Lizard eats Paper disproves
-   Spock vaporizes Rock crushes Scissors
-   ---------------------
-  MSG
+    welcome_message = <<~MSG
+  Welcome to Rock-Paper-Scissors-Lizard-Spock #{human.name}!
+     ---------------------
+     The rules are simple...
+     Choose your "hand signal", and see if you beat the computer's choice!
+     ---------------------
+     Scissors cuts Paper covers Rock crushes
+     Lizard poisons Spock smashes Scissors
+     decapitates Lizard eats Paper disproves
+     Spock vaporizes Rock crushes Scissors.
+     ---------------------
+    MSG
 
     prompt welcome_message
   end
+  # rubocop:enable Metrics/MethodLength
 
   def display_goodbye_message
     puts "\nThanks for playing Rock, Paper, Scissors. Good bye!"
@@ -288,6 +286,11 @@ Welcome to Rock-Paper-Scissors-Lizard-Spock #{human.name}!
     set_new_computer
   end
 
+  def display_results
+    display_grand_winner
+    display_move_records
+  end
+
   def play
     loop do
       start_game
@@ -295,9 +298,7 @@ Welcome to Rock-Paper-Scissors-Lizard-Spock #{human.name}!
       until grand_winner?
         play_round
       end
-
-      display_grand_winner
-      display_move_records
+      display_results
       reset_game
 
       break unless play_again?
