@@ -43,7 +43,7 @@ class Player
     score == WINNING_SCORE
   end
 
-  def add_to_history!(move)
+  def add_to_history(move)
     move_history << move
   end
 
@@ -82,7 +82,7 @@ class Human < Player
     end
 
     self.move = Move.new(choice)
-    add_to_history!(choice)
+    add_to_history(choice)
   end
 
   def check_choice_size(choice)
@@ -117,7 +117,7 @@ class Computer < Player
     choice = apply_personality
 
     self.move = Move.new(choice)
-    add_to_history!(choice)
+    add_to_history(choice)
   end
 
   private
