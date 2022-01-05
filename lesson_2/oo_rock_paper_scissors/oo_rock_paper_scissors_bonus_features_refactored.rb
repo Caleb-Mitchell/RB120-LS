@@ -1,6 +1,3 @@
-# TODO
-# - allow abbreviations for move name?
-
 class Move
   WINNING_MOVES = {
     'rock' => ['scissors', 'lizard'],
@@ -75,14 +72,43 @@ class Human < Player
   def choose
     choice = nil
     loop do
-      puts "\n=> Please choose rock, paper, scissors, lizard, or spock:"
-      choice = gets.chomp
+      puts "\n=> Please choose (r)ock, (p)aper, (sc)issors, " \
+           "(l)izard, or (sp)pock:"
+
+      choice = check_choice_size(gets.chomp.downcase)
+
       break if Move::VALID_CHOICES.include? choice
       puts "Sorry, invalid choice."
     end
-    self.move = Move.new(choice)
 
+    self.move = Move.new(choice)
     add_to_history!(choice)
+  end
+
+  def check_choice_size(choice)
+    return interpret_abbrev(choice) if choice.size() == 1 || choice.size() == 2
+    choice
+  end
+
+  def interpret_abbrev(choice)
+    case choice
+    when 'r' then 'rock'
+    when 'p' then 'paper'
+    when 'l' then 'lizard'
+    when 'sc' then 'scissors'
+    when 'sp' then 'spock'
+    when 's' then spock_or_scissors()
+    end
+  end
+
+  def spock_or_scissors
+    loop do
+      puts '=> Please input "sc" for scissors, or "sp" for spock'
+      new_abbr = gets.chomp.downcase
+
+      return "scissors" if new_abbr == "sc"
+      return "spock" if new_abbr == "sp"
+    end
   end
 end
 
@@ -246,8 +272,8 @@ class RPSGame
     return true if answer.downcase == 'y'
   end
 
-  # Set padding to either the longest possible computer name in random pool of
-  # computer names, or human name, whichever is longer.
+  # Set padding to accomodate either the computer name
+  # or human name, whichever is longer.
   def find_score_padding(name)
     all_names = [Computer.name, human.name]
     longest_name = all_names.max_by(&:length)
