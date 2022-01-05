@@ -6,6 +6,9 @@
 # for each computer type, such as R2D2Bot. By doing so, you wouldn’t need to
 # utilize a set_personality method, and you could define a custom
 # apply_personality method for each subclass.
+#
+# - Add to markdown feedback response, is it best to have main loop at top under
+# default public methods, and make everything else private? or vice versa?
 
 class Move
   WINNING_MOVES = {
@@ -44,7 +47,7 @@ class Player
   WINNING_SCORE = 3
 
   def initialize
-    set_name
+    # set_name
     @score = 0
     @move_history = []
   end
@@ -63,6 +66,12 @@ class Player
 end
 
 class Human < Player
+
+  def initialize
+    super()
+    set_name
+  end
+
   def set_name
     n = ''
     loop do
@@ -89,54 +98,100 @@ class Human < Player
 end
 
 class Computer < Player
-  COMP_NAMES = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5']
+  # COMP_NAMES = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5']
 
-  def initialize
-    super()
-    set_personality
-  end
+  # def initialize
+  #   super()
+  #   # set_personality
+  # end
 
-  def set_name
-    self.name = COMP_NAMES.sample
-  end
+  # def set_name
+  #   self.name = COMP_NAMES.sample
+  # end
 
-  def set_personality
-    self.personality = case name
-                       when 'R2D2'    then :always_rock
-                       when 'Hal'     then :often_scissors_no_paper
-                       when 'Chappie' then :always_paper
-                       else                :neutral
-                       end
-  end
+  # def set_personality
+  #   self.personality = case name
+  #                      when 'R2D2'    then :always_rock
+  #                      when 'Hal'     then :often_scissors_no_paper
+  #                      when 'Chappie' then :always_paper
+  #                      else                :neutral
+  #                      end
+  # end
 
-  def apply_personality
-    case personality
-    when :always_rock             then 'rock'
-    when :often_scissors_no_paper then ((['scissors'] * 3) + ['rock']).sample
-    when :always_paper            then 'paper'
-    when :neutral                 then Move::VALID_CHOICES.sample
-    end
-  end
+  # def apply_personality
+  #   case personality
+  #   when :always_rock             then 'rock'
+  #   when :often_scissors_no_paper then ((['scissors'] * 3) + ['rock']).sample
+  #   when :always_paper            then 'paper'
+  #   when :neutral                 then Move::VALID_CHOICES.sample
+  #   end
+  # end
 
   def choose
-    personality_choice = apply_personality
-    self.move = Move.new(personality_choice)
+    # personality_choice = apply_personality
+    # self.move = Move.new(personality_choice)
+    self.move = Move.new(personality)
 
-    add_to_history!(personality_choice)
+    # add_to_history!(personality_choice)
+    add_to_history!(personality)
   end
 
   private
 
-  attr_accessor :personality
+  attr_reader :personality
+
+end
+
+class R2D2Bot < Computer
+  def initialize
+    super()
+    @name = 'R2D2'
+    @personality = 'rock'
+  end
+end
+
+class HalBot < Computer
+  def initialize
+    super()
+    @name = 'Hal'
+    @personality = ((['scissors'] * 3) + ['rock']).sample
+  end
+end
+
+class ChappieBot < Computer
+  def initialize
+    super()
+    @name = 'Chappie'
+    @personality = 'paper'
+  end
+end
+
+class SonnyBot < Computer
+  def initialize
+    super()
+    @name = 'Sonny'
+    @personality = ((['spock'] * 3) + ['lizard']).sample
+  end
+end
+
+class Number5Bot < Computer
+  def initialize
+    super()
+    @name = 'Number 5'
+    @personality = Move::VALID_CHOICES.sample
+  end
 end
 
 # Game Orchestration Engine
 class RPSGame
   attr_accessor :human, :computer
 
+  BOT_NAMES = [R2D2Bot, HalBot, ChappieBot, SonnyBot, Number5Bot]
+
   def initialize
     @human = Human.new
-    @computer = Computer.new
+    # @computer = Computer.new
+    @computer = BOT_NAMES.sample.new
   end
 
   def play
@@ -255,7 +310,8 @@ class RPSGame
   # Set padding to either the longest possible computer name in random pool of
   # computer names, or human name, whichever is longer.
   def find_score_padding(name)
-    all_names = Computer::COMP_NAMES.dup << human.name
+    # all_names = Computer::COMP_NAMES.dup << human.name
+    all_names = [Computer.name, human.name]
     longest_name = all_names.max_by(&:length)
     1 + (longest_name.length - name.length)
   end
@@ -294,7 +350,8 @@ class RPSGame
   end
 
   def set_new_computer
-    self.computer = Computer.new
+    # self.computer = Computer.new
+    self.computer = BOT_NAMES.sample.new
   end
 
   def reset_game
