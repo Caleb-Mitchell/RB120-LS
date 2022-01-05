@@ -1,14 +1,5 @@
 # TODO
 # - allow abbreviations for move name?
-#
-# - Currently, you define all the functionalities of various computers in one
-# Computer class. A more object-oriented approach would be to create a subclass
-# for each computer type, such as R2D2Bot. By doing so, you wouldn’t need to
-# utilize a set_personality method, and you could define a custom
-# apply_personality method for each subclass.
-#
-# - Add to markdown feedback response, is it best to have main loop at top under
-# default public methods, and make everything else private? or vice versa?
 
 class Move
   WINNING_MOVES = {
@@ -47,7 +38,6 @@ class Player
   WINNING_SCORE = 3
 
   def initialize
-    # set_name
     @score = 0
     @move_history = []
   end
@@ -66,7 +56,6 @@ class Player
 end
 
 class Human < Player
-
   def initialize
     super()
     set_name
@@ -98,48 +87,14 @@ class Human < Player
 end
 
 class Computer < Player
-  # COMP_NAMES = ['R2D2', 'Hal', 'Chappie', 'Sonny', 'Number 5']
-
-  # def initialize
-  #   super()
-  #   # set_personality
-  # end
-
-  # def set_name
-  #   self.name = COMP_NAMES.sample
-  # end
-
-  # def set_personality
-  #   self.personality = case name
-  #                      when 'R2D2'    then :always_rock
-  #                      when 'Hal'     then :often_scissors_no_paper
-  #                      when 'Chappie' then :always_paper
-  #                      else                :neutral
-  #                      end
-  # end
-
-  # def apply_personality
-  #   case personality
-  #   when :always_rock             then 'rock'
-  #   when :often_scissors_no_paper then ((['scissors'] * 3) + ['rock']).sample
-  #   when :always_paper            then 'paper'
-  #   when :neutral                 then Move::VALID_CHOICES.sample
-  #   end
-  # end
-
   def choose
-    # personality_choice = apply_personality
-    # self.move = Move.new(personality_choice)
     self.move = Move.new(personality)
-
-    # add_to_history!(personality_choice)
     add_to_history!(personality)
   end
 
   private
 
   attr_reader :personality
-
 end
 
 class R2D2Bot < Computer
@@ -190,23 +145,7 @@ class RPSGame
 
   def initialize
     @human = Human.new
-    # @computer = Computer.new
     @computer = BOT_NAMES.sample.new
-  end
-
-  def play
-    loop do
-      start_game
-
-      until grand_winner?
-        play_round
-      end
-      display_results
-      reset_game
-
-      break unless play_again?
-    end
-    display_goodbye_message
   end
 
   private
@@ -310,7 +249,6 @@ class RPSGame
   # Set padding to either the longest possible computer name in random pool of
   # computer names, or human name, whichever is longer.
   def find_score_padding(name)
-    # all_names = Computer::COMP_NAMES.dup << human.name
     all_names = [Computer.name, human.name]
     longest_name = all_names.max_by(&:length)
     1 + (longest_name.length - name.length)
@@ -350,7 +288,6 @@ class RPSGame
   end
 
   def set_new_computer
-    # self.computer = Computer.new
     self.computer = BOT_NAMES.sample.new
   end
 
@@ -363,6 +300,23 @@ class RPSGame
   def display_results
     display_grand_winner
     display_move_records
+  end
+
+  public
+
+  def play
+    loop do
+      start_game
+
+      until grand_winner?
+        play_round
+      end
+      display_results
+      reset_game
+
+      break unless play_again?
+    end
+    display_goodbye_message
   end
 end
 
