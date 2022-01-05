@@ -114,20 +114,25 @@ end
 
 class Computer < Player
   def choose
-    self.move = Move.new(personality)
-    add_to_history!(personality)
+    choice = apply_personality
+
+    self.move = Move.new(choice)
+    add_to_history!(choice)
   end
 
   private
 
-  attr_reader :personality
+  attr_reader :apply_personality
 end
 
 class R2D2Bot < Computer
   def initialize
     super()
     @name = 'R2D2'
-    @personality = 'rock'
+  end
+
+  def apply_personality
+    'rock'
   end
 end
 
@@ -135,7 +140,10 @@ class HalBot < Computer
   def initialize
     super()
     @name = 'Hal'
-    @personality = ((['scissors'] * 3) + ['rock']).sample
+  end
+
+  def apply_personality
+    ((['scissors'] * 3) + ['rock']).sample
   end
 end
 
@@ -143,7 +151,10 @@ class ChappieBot < Computer
   def initialize
     super()
     @name = 'Chappie'
-    @personality = 'paper'
+  end
+
+  def apply_personality
+    'paper'
   end
 end
 
@@ -151,7 +162,10 @@ class SonnyBot < Computer
   def initialize
     super()
     @name = 'Sonny'
-    @personality = ((['spock'] * 3) + ['lizard']).sample
+  end
+
+  def apply_personality
+    ((['spock'] * 3) + ['lizard']).sample
   end
 end
 
@@ -159,7 +173,10 @@ class Number5Bot < Computer
   def initialize
     super()
     @name = 'Number 5'
-    @personality = Move::VALID_CHOICES.sample
+  end
+
+  def apply_personality
+    Move::VALID_CHOICES.sample
   end
 end
 
