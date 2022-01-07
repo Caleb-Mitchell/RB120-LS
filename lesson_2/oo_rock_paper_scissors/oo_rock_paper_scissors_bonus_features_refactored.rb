@@ -191,6 +191,21 @@ class RPSGame
     @computer = BOT_NAMES.sample.new
   end
 
+  def play
+    loop do
+      start_game
+
+      until grand_winner?
+        play_round
+      end
+      display_results
+      reset_game
+
+      break unless play_again?
+    end
+    display_goodbye_message
+  end
+
   private
 
   def clear_screen
@@ -343,23 +358,6 @@ class RPSGame
   def display_results
     display_grand_winner
     display_move_records
-  end
-
-  public
-
-  def play
-    loop do
-      start_game
-
-      until grand_winner?
-        play_round
-      end
-      display_results
-      reset_game
-
-      break unless play_again?
-    end
-    display_goodbye_message
   end
 end
 
