@@ -90,8 +90,9 @@ end
 class Player
   attr_reader :marker
 
-  def initialize(marker)
+  def initialize(marker, score = 0)
     @marker = marker
+    @score = score
   end
 end
 
