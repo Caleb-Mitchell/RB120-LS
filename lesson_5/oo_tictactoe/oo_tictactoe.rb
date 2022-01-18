@@ -1,3 +1,5 @@
+require 'pry'
+
 class Board
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # cols
@@ -44,11 +46,11 @@ class Board
     puts "     |     |"
     puts "  #{@squares[1]}  |  #{@squares[2]}  |  #{@squares[3]}"
     puts "     |     |"
-    puts "-----+-----+-----"
-    puts "     |     |"
-    puts "  #{@squares[4]}  |  #{@squares[5]}  |  #{@squares[6]}"
-    puts "     |     |"
-    puts "-----+-----+-----"
+    puts "-----+-----+-----    1 | 2 | 3"
+    puts "     |     |        --- --- ---"
+    puts "  #{@squares[4]}  |  #{@squares[5]}  |  #{@squares[6]}      4 | 5 | 6"
+    puts "     |     |        --- --- ---"
+    puts "-----+-----+-----    7 | 8 | 9"
     puts "     |     |"
     puts "  #{@squares[7]}  |  #{@squares[8]}  |  #{@squares[9]}"
     puts "     |     |"
@@ -89,10 +91,15 @@ end
 
 class Player
   attr_reader :marker
+  attr_accessor :score
 
   def initialize(marker, score = 0)
     @marker = marker
     @score = score
+  end
+
+  def add_point_to_score
+    @score += 1
   end
 end
 
@@ -100,6 +107,7 @@ class TTTGame
   HUMAN_MARKER = "X"
   COMPUTER_MARKER = "O"
   FIRST_TO_MOVE = HUMAN_MARKER
+  POINTS_TO_WIN = 2
 
   attr_reader :board, :human, :computer
 
@@ -113,7 +121,12 @@ class TTTGame
   def play
     clear
     display_welcome_message
-    main_game
+    loop do
+      main_game
+      display_grand_winner
+      break unless play_again?
+      full_reset
+    end
     display_goodbye_message
   end
 
@@ -124,17 +137,38 @@ class TTTGame
       display_board
       player_move
       display_result
-      break unless play_again?
       reset
-      display_play_again_message
+      break if grand_winner?
     end
   end
 
   def player_move
     loop do
       current_player_moves
+      update_score if board.someone_won?
       break if board.someone_won? || board.full?
       clear_screen_and_display_board if human_turn?
+    end
+  end
+
+  def display_grand_winner
+    if human.score == POINTS_TO_WIN
+      prompt "You are the grand winner!"
+    elsif computer.score == POINTS_TO_WIN
+      prompt "Sorry, the computer is the grand winner."
+    end
+    puts ""
+  end
+
+  def grand_winner?
+    human.score == POINTS_TO_WIN || computer.score == POINTS_TO_WIN
+  end
+
+  def update_score
+    if board.winning_marker == human.marker
+      @human.add_point_to_score
+    elsif board.winning_marker == computer.marker
+      @computer.add_point_to_score
     end
   end
 
@@ -142,17 +176,33 @@ class TTTGame
     system 'clear'
   end
 
+  def prompt(msg)
+    puts "=> #{msg}"
+  end
+
   def display_welcome_message
-    puts "Welcome to Tic Tac Toe!"
-    puts ""
+    puts <<-MSG
+
+         ====== Welcome to TicTacToe ======         
+                        --
+     Try to get #{POINTS_TO_WIN} in a row, before the computer!
+                        --
+            Press Enter to continue...
+    MSG
+    gets
+    clear
   end
 
   def display_goodbye_message
+    clear
     puts "Thanks for playing Tic Tac Toe! Goodbye!"
   end
 
   def display_board
     puts "You're a #{human.marker}. Computer is a #{computer.marker}."
+    puts "--Current Score-- (First to #{POINTS_TO_WIN} wins!)"
+    puts "Player: #{human.score}"
+    puts "Computer: #{computer.score}"
     puts ""
     board.draw
     puts ""
@@ -175,13 +225,12 @@ class TTTGame
   end
 
   def human_moves
-    # puts "Choose a square (#{board.unmarked_keys.join(', ')}): "
-    puts "Choose a square (#{joinor(board.unmarked_keys)}): "
+    prompt "Choose a square (#{joinor(board.unmarked_keys)}): "
     square = nil
     loop do
       square = gets.chomp.to_i
       break if board.unmarked_keys.include?(square)
-      puts "Sorry, that's not a valid choice."
+      prompt "Sorry, that's not a valid choice."
     end
 
     board[square] = human.marker
@@ -196,12 +245,14 @@ class TTTGame
 
     case board.winning_marker
     when human.marker
-      puts "You won!"
+      prompt "You won!"
     when computer.marker
-      puts "Computer won!"
+      prompt "Computer won!"
     else
-      puts "It's a tie!"
+      prompt "It's a tie!"
     end
+    prompt "Hit any key to continue."
+    gets
   end
 
   def play_again?
@@ -222,9 +273,10 @@ class TTTGame
     clear
   end
 
-  def display_play_again_message
-    puts "Let's play again!"
-    puts ""
+  def full_reset
+    reset
+    human.score = 0
+    computer.score = 0
   end
 
   def human_turn?
