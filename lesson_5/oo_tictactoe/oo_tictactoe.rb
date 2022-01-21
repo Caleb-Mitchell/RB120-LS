@@ -10,8 +10,12 @@ class Board
     reset
   end
 
-  def []=(num, marker)
-    @squares[num].marker = marker
+  def []=(num, player_marker)
+    @squares[num].marker = player_marker
+  end
+
+  def [](num)
+    @squares[num].marker
   end
 
   def unmarked_keys
@@ -24,6 +28,19 @@ class Board
 
   def someone_won?
     !!winning_marker
+  end
+
+  def find_at_risk_square
+    WINNING_LINES.each do |line|
+      squares = @squares.values_at(*line)
+      if two_identical_markers?(squares)
+        # binding.pry
+        # need to select the int object from line which represents the index
+        # of the marker of INITIAL_MARKER
+        return line.select.with_index { |square, idx| squares[idx].marker == Square::INITIAL_MARKER }
+      end
+    end
+    nil
   end
 
   def winning_marker
@@ -59,6 +76,12 @@ class Board
   # rubocop:enable Metrics/MethodLength
 
   private
+
+  def two_identical_markers?(squares)
+    markers = squares.select(&:marked?).collect(&:marker)
+    return false if markers.size != 2
+    markers.min == markers.max
+  end
 
   def three_identical_markers?(squares)
     markers = squares.select(&:marked?).collect(&:marker)
@@ -236,8 +259,59 @@ class TTTGame
     board[square] = human.marker
   end
 
+  # TODO check if board has a line threat and that threat
+  # is using the computer marker
+  # def computer_threatens?
+
+  # end
+
+  # TODO check if board has a line threat and that threat
+  # is using the player marker
+  # def player_threatens?
+
+  # end
+
   def computer_moves
-    board[board.unmarked_keys.sample] = computer.marker
+    # board[board.unmarked_keys.sample] = computer.marker
+
+    # Update this for defense and offense A.I.
+    # Right now, the board object is a hash, and we use the
+    # collection setter method to set the value of the computer marker
+    # to the location key of the board hash when the computer moves
+    #
+    # I need to determine this location key, with logic,
+    # instead of the current random choice, before setting the marker
+
+    # square = nil
+
+    # offense first
+    # binding.pry
+    # Board::WINNING_LINES.each do |line|
+
+    binding.pry
+    square = board.find_at_risk_square
+    # break if square
+
+    # # defense
+    # WINNING_LINES.each do |line|
+    #   square = board.find_at_risk_square
+    #   break if square
+    # end
+
+    # pick the middle square if it's open
+    if !square
+      square = 5 if board[5] == Square::INITIAL_MARKER
+    end
+    binding.pry
+
+    # pick a random square
+    if !square
+      square = board.unmarked_keys.sample
+    end
+    binding.pry
+
+    board[square] = computer.marker
+    binding.pry
   end
 
   def display_result
