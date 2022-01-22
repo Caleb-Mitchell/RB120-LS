@@ -1,6 +1,8 @@
 require 'pry'
 
 class Board
+  attr_reader :squares
+
   WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                   [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # cols
                   [[1, 5, 9], [3, 5, 7]]              # diagonals
@@ -10,8 +12,8 @@ class Board
     reset
   end
 
-  def []=(num, player_marker)
-    @squares[num].marker = player_marker
+  def []=(num, marker)
+    @squares[num].marker = marker
   end
 
   def [](num)
@@ -30,17 +32,12 @@ class Board
     !!winning_marker
   end
 
-  def find_at_risk_square
-    WINNING_LINES.each do |line|
+  def find_line_threats
+    line_threats = WINNING_LINES.select do |line|
       squares = @squares.values_at(*line)
-      if two_identical_markers?(squares)
-        # binding.pry
-        # need to select the int object from line which represents the index
-        # of the marker of INITIAL_MARKER
-        return line.select.with_index { |square, idx| squares[idx].marker == Square::INITIAL_MARKER }
-      end
+      two_identical_markers?(squares)
     end
-    nil
+    line_threats
   end
 
   def winning_marker
@@ -210,7 +207,7 @@ class TTTGame
                         --
      Try to get #{POINTS_TO_WIN} in a row, before the computer!
                         --
-            Press Enter to continue...
+            Press Enter to continue.
     MSG
     gets
     clear
@@ -259,59 +256,44 @@ class TTTGame
     board[square] = human.marker
   end
 
-  # TODO check if board has a line threat and that threat
-  # is using the computer marker
-  # def computer_threatens?
+  def player_threatens?(line_threats, player_marker)
+    line_threats.any? do |line|
+      squares = board.squares.values_at(*line)
+      squares.any? { |square| square.marker == player_marker }
+    end
+  end
 
-  # end
+  def find_winning_square(line_threats, winning_marker)
+    line_threats.each do |line|
+      squares = board.squares.values_at(*line)
+      if squares.count { |square| square.marker == winning_marker } == 2
+        return line.select.with_index { |_, idx| squares[idx].unmarked? }.first
+      end
+    end
+    nil
+  end
 
-  # TODO check if board has a line threat and that threat
-  # is using the player marker
-  # def player_threatens?
-
-  # end
+  def address_threat(line_threats)
+    # offense first, then defense
+    [computer, human].each do |player|
+      if player_threatens?(line_threats, player.marker)
+        square = find_winning_square(line_threats, player.marker)
+      end
+      return square if square
+    end
+    nil
+  end
 
   def computer_moves
-    # board[board.unmarked_keys.sample] = computer.marker
-
-    # Update this for defense and offense A.I.
-    # Right now, the board object is a hash, and we use the
-    # collection setter method to set the value of the computer marker
-    # to the location key of the board hash when the computer moves
-    #
-    # I need to determine this location key, with logic,
-    # instead of the current random choice, before setting the marker
-
-    # square = nil
-
-    # offense first
-    # binding.pry
-    # Board::WINNING_LINES.each do |line|
-
-    binding.pry
-    square = board.find_at_risk_square
-    # break if square
-
-    # # defense
-    # WINNING_LINES.each do |line|
-    #   square = board.find_at_risk_square
-    #   break if square
-    # end
+    line_threats = board.find_line_threats
+    square = address_threat(line_threats)
 
     # pick the middle square if it's open
-    if !square
-      square = 5 if board[5] == Square::INITIAL_MARKER
-    end
-    binding.pry
-
+    square = 5 if !square && board[5] == Square::INITIAL_MARKER
     # pick a random square
-    if !square
-      square = board.unmarked_keys.sample
-    end
-    binding.pry
+    square = board.unmarked_keys.sample if !square
 
     board[square] = computer.marker
-    binding.pry
   end
 
   def display_result
@@ -325,8 +307,7 @@ class TTTGame
     else
       prompt "It's a tie!"
     end
-    prompt "Hit any key to continue."
-    gets
+    enter_to_continue
   end
 
   def play_again?
@@ -339,6 +320,11 @@ class TTTGame
     end
 
     answer == 'y'
+  end
+
+  def enter_to_continue
+    prompt "Hit Enter to continue."
+    gets
   end
 
   def reset
