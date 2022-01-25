@@ -110,11 +110,10 @@ class Square
 end
 
 class Player
-  attr_reader :marker
+  attr_accessor :marker
   attr_accessor :score
 
-  def initialize(marker, score = 0)
-    @marker = marker
+  def initialize(score = 0)
     @score = score
   end
 
@@ -124,23 +123,22 @@ class Player
 end
 
 class TTTGame
-  HUMAN_MARKER = "X"
-  COMPUTER_MARKER = "O"
   POINTS_TO_WIN = 2
 
-  attr_reader :board, :human, :computer
+  attr_reader :board
+  attr_accessor :human, :computer
 
   def initialize
     @board = Board.new
-    @human = Player.new(HUMAN_MARKER)
-    @computer = Player.new(COMPUTER_MARKER)
+    @human = Player.new
+    @computer = Player.new
   end
 
   def play
     clear
     display_welcome_message
     loop do
-      set_first_player
+      setup_players
       main_game
       display_grand_winner
       break unless play_again?
@@ -151,7 +149,28 @@ class TTTGame
 
   private
 
-  def set_first_player
+  def setup_players
+    determine_markers
+    determine_first_player
+  end
+
+  def determine_markers
+    human.marker = obtain_user_choice_marker
+    computer.marker = if human.marker == "X"
+                        "O"
+                      elsif human.marker == "O"
+                        "X"
+                      end
+  end
+
+  def obtain_user_choice_marker
+    puts "Which marker would you like? X or O?"
+    puts ""
+    print "=> Please enter X or O: "
+    gets.chomp.upcase
+  end
+
+  def determine_first_player
     turn_chooser = ask_player_who_should_choose
     @first_to_move = determine_first_turn(turn_chooser)
     set_current_marker
@@ -163,10 +182,10 @@ class TTTGame
   end
 
   def alternate_first_turn
-    @first_to_move = if @first_to_move == HUMAN_MARKER
-                       COMPUTER_MARKER
+    @first_to_move = if @first_to_move == human.marker
+                       computer.marker
                      else
-                       HUMAN_MARKER
+                       human.marker
                      end
     set_current_marker
   end
@@ -359,16 +378,16 @@ class TTTGame
   end
 
   def human_turn?
-    @current_marker == HUMAN_MARKER
+    @current_marker == human.marker
   end
 
   def current_player_moves
     if human_turn?
       human_moves
-      @current_marker = COMPUTER_MARKER
+      @current_marker = computer.marker
     else
       computer_moves
-      @current_marker = HUMAN_MARKER
+      @current_marker = human.marker
     end
   end
 
@@ -402,7 +421,7 @@ class TTTGame
   end
 
   def obtain_user_choice_first_turn
-    prompt "=> Who should go first? (p)layer or (c)omputer?\n"
+    puts "Who should go first? (p)layer or (c)omputer?"
     print "(Starting player will alternate each round)\n\n"
     print "=> Please enter (p)layer, or (c)omputer: "
     gets.chomp.downcase
@@ -410,9 +429,9 @@ class TTTGame
 
   def current_player(first_turn_choice)
     if first_turn_choice.start_with?('p')
-      HUMAN_MARKER
+      human.marker
     elsif first_turn_choice.start_with?('c')
-      COMPUTER_MARKER
+      computer.marker
     end
   end
 
@@ -429,7 +448,8 @@ class TTTGame
   end
 
   def obtain_user_choice_to_choose
-    prompt "Would you like to choose who goes first?\n" \
+    clear
+    puts "Would you like to choose who goes first?\n" \
            "(If no, the computer will choose randomly)\n\n"
     print "=> Please enter (y)es or (n)o: "
     gets.chomp.downcase
@@ -439,7 +459,7 @@ class TTTGame
     current_player = if turn_chooser.start_with?('y')
                        player_first_turn_choice
                      else
-                       [HUMAN_MARKER, COMPUTER_MARKER].sample
+                       [human.marker, computer.marker].sample
                      end
     current_player
   end
