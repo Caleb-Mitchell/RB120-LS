@@ -1,5 +1,3 @@
-require 'pry'
-
 class Board
   attr_reader :squares
 
@@ -110,8 +108,10 @@ class Square
 end
 
 class Player
-  attr_accessor :marker
-  attr_accessor :score
+  COMPUTER_NAMES = ["R2D2", "Chappie", "Number5", "Hal", "C3P0", "Sonny"]
+
+  attr_accessor :marker, :score
+  attr_writer :name
 
   def initialize(score = 0)
     @score = score
@@ -119,6 +119,10 @@ class Player
 
   def add_point_to_score
     @score += 1
+  end
+
+  def name
+    @name.capitalize
   end
 end
 
@@ -149,7 +153,20 @@ class TTTGame
 
   private
 
+  def set_names
+    human.name = obtain_user_choice_name
+    computer.name = Player::COMPUTER_NAMES.sample
+  end
+
+  def obtain_user_choice_name
+    puts "What is your name?"
+    puts ""
+    print "=> Type your name here: "
+    gets.chomp
+  end
+
   def setup_players
+    set_names
     determine_markers
     determine_first_player
   end
@@ -164,6 +181,7 @@ class TTTGame
   end
 
   def obtain_user_choice_marker
+    clear
     puts "Which marker would you like? X or O?"
     puts ""
     print "=> Please enter X or O: "
@@ -257,13 +275,18 @@ class TTTGame
   end
 
   def display_board
-    puts "You're a #{human.marker}. Computer is a #{computer.marker}."
-    puts "--Current Score-- (First to #{POINTS_TO_WIN} wins!)"
-    puts "Player: #{human.score}"
-    puts "Computer: #{computer.score}"
+    puts "#{human.name}, you're #{human.marker}. #{computer.name}" \
+      " is #{computer.marker}."
+    display_score
     puts ""
     board.draw
     puts ""
+  end
+
+  def display_score
+    puts "--Current Score-- (First to #{POINTS_TO_WIN} wins!)"
+    puts "Player: #{human.score}"
+    puts "Computer: #{computer.score}\n"
   end
 
   def clear_screen_and_display_board
