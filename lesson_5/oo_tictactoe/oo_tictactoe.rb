@@ -127,7 +127,7 @@ class Player
 end
 
 class TTTGame
-  POINTS_TO_WIN = 2
+  POINTS_TO_WIN = 5
 
   attr_reader :board
   attr_accessor :human, :computer
