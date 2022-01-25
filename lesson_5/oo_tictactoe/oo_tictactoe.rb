@@ -126,7 +126,6 @@ end
 class TTTGame
   HUMAN_MARKER = "X"
   COMPUTER_MARKER = "O"
-  FIRST_TO_MOVE = HUMAN_MARKER
   POINTS_TO_WIN = 2
 
   attr_reader :board, :human, :computer
@@ -135,13 +134,13 @@ class TTTGame
     @board = Board.new
     @human = Player.new(HUMAN_MARKER)
     @computer = Player.new(COMPUTER_MARKER)
-    @current_marker = FIRST_TO_MOVE
   end
 
   def play
     clear
     display_welcome_message
     loop do
+      set_first_player
       main_game
       display_grand_winner
       break unless play_again?
@@ -151,6 +150,26 @@ class TTTGame
   end
 
   private
+
+  def set_first_player
+    turn_chooser = ask_player_who_should_choose
+    @first_to_move = determine_first_turn(turn_chooser)
+    set_current_marker
+    clear
+  end
+
+  def set_current_marker
+    @current_marker = @first_to_move
+  end
+
+  def alternate_first_turn
+    @first_to_move = if @first_to_move == HUMAN_MARKER
+                       COMPUTER_MARKER
+                     else
+                       HUMAN_MARKER
+                     end
+    set_current_marker
+  end
 
   def main_game
     loop do
@@ -250,7 +269,7 @@ class TTTGame
     loop do
       square = gets.chomp.to_i
       break if board.unmarked_keys.include?(square)
-      prompt "Sorry, that's not a valid choice."
+      display_square_num_error
     end
 
     board[square] = human.marker
@@ -315,7 +334,7 @@ class TTTGame
     loop do
       puts "Would you like to play again? (y/n)"
       answer = gets.chomp.downcase
-      break if %w(y n).include? answer
+      break if valid_yes_or_no? answer
       puts "Sorry, must be y or n"
     end
 
@@ -329,7 +348,7 @@ class TTTGame
 
   def reset
     board.reset
-    @current_marker = FIRST_TO_MOVE
+    alternate_first_turn
     clear
   end
 
@@ -351,6 +370,78 @@ class TTTGame
       computer_moves
       @current_marker = HUMAN_MARKER
     end
+  end
+
+  def valid_first_turn_choice?(first_turn_choice)
+    ['p', 'player', 'c', 'computer'].include?(first_turn_choice)
+  end
+
+  def valid_yes_or_no?(user_input)
+    ['y', 'yes', 'n', 'no'].include?(user_input)
+  end
+
+  def display_square_num_error
+    clear
+    display_board
+    prompt "Invalid input, please enter a valid square number."
+    puts ""
+    prompt "Choose a square (#{board.unmarked_keys}): "
+  end
+
+  def player_first_turn_choice
+    clear
+    first_turn_choice = ''
+    loop do
+      first_turn_choice = obtain_user_choice_first_turn
+      break if valid_first_turn_choice?(first_turn_choice)
+      clear
+      prompt "Sorry, please enter either (p)layer, or (c)omputer. Try again."
+      puts ""
+    end
+    current_player(first_turn_choice)
+  end
+
+  def obtain_user_choice_first_turn
+    prompt "=> Who should go first? (p)layer or (c)omputer?\n"
+    print "(Starting player will alternate each round)\n\n"
+    print "=> Please enter (p)layer, or (c)omputer: "
+    gets.chomp.downcase
+  end
+
+  def current_player(first_turn_choice)
+    if first_turn_choice.start_with?('p')
+      HUMAN_MARKER
+    elsif first_turn_choice.start_with?('c')
+      COMPUTER_MARKER
+    end
+  end
+
+  def ask_player_who_should_choose
+    player_choice = ''
+    loop do
+      player_choice = obtain_user_choice_to_choose
+      break if valid_yes_or_no?(player_choice)
+      system 'clear'
+      puts "Sorry, please enter (y)es or (n)o. Try again."
+      puts ""
+    end
+    player_choice
+  end
+
+  def obtain_user_choice_to_choose
+    prompt "Would you like to choose who goes first?\n" \
+           "(If no, the computer will choose randomly)\n\n"
+    print "=> Please enter (y)es or (n)o: "
+    gets.chomp.downcase
+  end
+
+  def determine_first_turn(turn_chooser)
+    current_player = if turn_chooser.start_with?('y')
+                       player_first_turn_choice
+                     else
+                       [HUMAN_MARKER, COMPUTER_MARKER].sample
+                     end
+    current_player
   end
 end
 
