@@ -153,7 +153,7 @@ class TTTGame
 
   private
 
-  def set_names
+  def determine_names
     human.name = obtain_user_choice_name
     computer.name = Player::COMPUTER_NAMES.sample
   end
@@ -166,7 +166,7 @@ class TTTGame
   end
 
   def setup_players
-    set_names
+    determine_names
     determine_markers
     determine_first_player
   end
