@@ -1,5 +1,3 @@
-require 'pry'
-
 module Displayable
   def clear
     system 'clear'
@@ -21,7 +19,7 @@ module Displayable
 end
 
 module Hand
-  def hit(deck)
+  def hit
     deck.deal(self)
   end
 
@@ -49,7 +47,7 @@ module Hand
     hand_minus_aces
   end
 
-  def total_score
+  def hand_total_score
     running_total = tally_hand_minus_aces
     num_aces = tally_num_aces
 
@@ -65,11 +63,13 @@ class Participant
   include Hand
 
   attr_accessor :cards, :score, :grand_score
+  attr_reader :deck
 
-  def initialize
+  def initialize(deck)
     @cards = []
     @score = 0
     @grand_score = 0
+    @deck = deck
   end
 
   def reset_score
@@ -82,22 +82,6 @@ class Participant
 
   def reset_hand
     @cards = []
-  end
-
-  def play_again?
-    answer = nil
-    loop do
-      puts "Would you like to play again? (y/n)"
-      answer = gets.chomp.downcase
-      break if valid_yes_or_no? answer
-      puts "Sorry, must be y or n"
-    end
-
-    answer == 'y'
-  end
-
-  def valid_yes_or_no?(user_input)
-    ['y', 'yes', 'n', 'no'].include?(user_input)
   end
 end
 
@@ -145,12 +129,12 @@ class Game
 
   WINNING_VALUE = 21
   DEALER_STAY_VALUE = 17
-  POINTS_TO_WIN = 2
+  POINTS_TO_WIN = 5
 
   def initialize
     @deck = Deck.new
-    @player = Participant.new
-    @dealer = Participant.new
+    @player = Participant.new(deck)
+    @dealer = Participant.new(deck)
   end
 
   def start
@@ -159,7 +143,7 @@ class Game
       main_game
       display_grand_winner
       full_reset
-      break unless player.play_again?
+      break unless play_again?
     end
     display_goodbye_message
   end
@@ -168,7 +152,7 @@ class Game
 
   def main_game
     loop do
-      deal_cards
+      deal_starting_hand
       player_turn
       display_game(hide_dealer_cards: false)
       dealer_turn unless player.busted?
@@ -176,6 +160,14 @@ class Game
       increment_grand_score
       break if grand_winner?
       reset_hands
+    end
+  end
+
+  def deal_starting_hand
+    [player, dealer].each do |participant|
+      2.times do
+        deck.deal(participant)
+      end
     end
   end
 
@@ -221,7 +213,7 @@ class Game
   def dealer_turn
     loop do
       break if dealer_can_stop? || dealer.busted?
-      dealer.hit(deck)
+      dealer.hit
       update_score
       display_game(hide_dealer_cards: false)
       display_dealer_hits
@@ -243,7 +235,7 @@ class Game
       break if ['h', 'hit', 's', 'stay'].include?(player_choice)
       clear
       display_game(hide_dealer_cards: true)
-      prompt "Sorry, not a valid choice, please try again.\n\n"
+      prompt "Sorry, not a valid choice, please enter (h)it or (s)tay.\n\n"
     end
     player_choice
   end
@@ -267,7 +259,7 @@ class Game
   end
 
   def advance_player_turn
-    player.hit(deck)
+    player.hit
     update_score
     display_game
   end
@@ -281,8 +273,8 @@ class Game
   end
 
   def update_score
-    player.score = player.total_score
-    dealer.score = dealer.total_score
+    player.score = player.hand_total_score
+    dealer.score = dealer.hand_total_score
   end
 
   # rubocop:disable Metrics/MethodLength
@@ -382,20 +374,34 @@ class Game
     !!hide_dealer_cards ? '??' : dealer.score
   end
 
-  def deal_cards
-    [player, dealer].each do |participant|
-      2.times do
-        deck.deal(participant)
-      end
-    end
-  end
-
   def card_list(participant)
     card_list = []
     participant.cards.each do |card|
       card_list << "#{card.value} of #{card.suit}"
     end
     card_list
+  end
+
+  def play_again?
+    answer = nil
+    loop do
+      puts "Would you like to play again? (y/n)"
+      answer = gets.chomp.downcase
+      break if valid_yes_or_no? answer
+      display_play_again_error
+    end
+
+    answer == 'y'
+  end
+
+  def display_play_again_error
+    clear
+    prompt "Sorry, not a valid choice, please enter (y)es or (n)o."
+    puts
+  end
+
+  def valid_yes_or_no?(user_input)
+    ['y', 'yes', 'n', 'no'].include?(user_input)
   end
 end
 
