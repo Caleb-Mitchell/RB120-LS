@@ -19,6 +19,14 @@ module Displayable
 end
 
 module Hand
+  def deal_starting_hand
+    [player, dealer].each do |participant|
+      2.times do
+        deck.deal(participant)
+      end
+    end
+  end
+
   def hit
     deck.deal(self)
   end
@@ -56,6 +64,26 @@ module Hand
       running_total += ((running_total + 11) > Game::WINNING_VALUE ? 1 : 11)
     end
     running_total
+  end
+
+  def card_list(participant)
+    card_list = []
+    participant.cards.each do |card|
+      card_list << "#{card.value} of #{card.suit}"
+    end
+    card_list
+  end
+
+  def join_card_list(participant)
+    card_list(participant).join(', ')
+  end
+
+  def determine_dealer_hand_display(hide_dealer_cards)
+    !!hide_dealer_cards ? '??' : join_card_list(dealer)
+  end
+
+  def determine_dealer_score_display(hide_dealer_cards)
+    !!hide_dealer_cards ? '??' : dealer.score
   end
 end
 
@@ -122,6 +150,7 @@ end
 
 class Game
   include Displayable
+  include Hand
 
   NAME = '21'
 
@@ -160,14 +189,6 @@ class Game
       increment_grand_score
       break if grand_winner?
       reset_hands
-    end
-  end
-
-  def deal_starting_hand
-    [player, dealer].each do |participant|
-      2.times do
-        deck.deal(participant)
-      end
     end
   end
 
@@ -360,26 +381,6 @@ class Game
                     ==========
 
     GAME
-  end
-
-  def join_card_list(participant)
-    card_list(participant).join(', ')
-  end
-
-  def determine_dealer_hand_display(hide_dealer_cards)
-    !!hide_dealer_cards ? '??' : join_card_list(dealer)
-  end
-
-  def determine_dealer_score_display(hide_dealer_cards)
-    !!hide_dealer_cards ? '??' : dealer.score
-  end
-
-  def card_list(participant)
-    card_list = []
-    participant.cards.each do |card|
-      card_list << "#{card.value} of #{card.suit}"
-    end
-    card_list
   end
 
   def play_again?
