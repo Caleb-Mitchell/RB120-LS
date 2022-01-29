@@ -7,11 +7,6 @@ module Displayable
     puts "=> #{msg}"
   end
 
-  def clear_screen_and_display_board
-    clear
-    display_board
-  end
-
   def joinor(arr, delimiter=', ', word='or')
     case arr.size
     when 0 then ''
@@ -26,9 +21,9 @@ module Displayable
   def display_welcome_message
     puts <<~MSG
 
-         ====== Welcome to TicTacToe ======         
+         ====== Welcome to #{self.class::NAME} ======         
                         --
-     Try to get #{TTTGame::POINTS_TO_WIN} in a row, before the computer!
+     Try to get #{self.class::POINTS_TO_WIN} in a row, before the computer!
                         --
             Press Enter to continue.
     MSG
@@ -41,56 +36,9 @@ module Displayable
     gets
   end
 
-  def display_grand_winner
-    if human.score == TTTGame::POINTS_TO_WIN
-      prompt "You are the grand winner!"
-    elsif computer.score == TTTGame::POINTS_TO_WIN
-      prompt "Sorry, the computer is the grand winner."
-    end
-    puts
-  end
-
   def display_goodbye_message
     clear
-    puts "Thanks for playing Tic Tac Toe! Goodbye!"
-  end
-
-  def display_board
-    puts "#{human.name}, you're #{human.marker}. #{computer.name}" \
-      " is #{computer.marker}."
-    display_score
-    puts
-    board.draw
-    puts
-  end
-
-  def display_score
-    puts <<~MSG
-
-    --Current Score-- (First to #{TTTGame::POINTS_TO_WIN} wins!)
-    Player: #{human.score}
-    Computer: #{computer.score}
-
-    MSG
-  end
-
-  def display_result
-    clear_screen_and_display_board
-
-    case board.winning_marker
-    when human.marker    then prompt "You won!"
-    when computer.marker then prompt "Computer won!"
-    else                      prompt "It's a tie!"
-    end
-    puts
-    display_press_enter_to_continue
-  end
-
-  def display_square_num_error
-    clear
-    display_board
-    prompt "Invalid input, please enter a valid square number."
-    puts
+    puts "Thanks for playing #{self.class::NAME}! Goodbye!"
   end
 
   def display_marker_choice_error
@@ -362,6 +310,7 @@ end
 class TTTGame
   include Displayable
 
+  NAME = 'TicTacToe'
   POINTS_TO_WIN = 5
 
   attr_reader :board
@@ -479,6 +428,10 @@ class TTTGame
     answer == 'y'
   end
 
+  def valid_yes_or_no?(user_input)
+    ['y', 'yes', 'n', 'no'].include?(user_input)
+  end
+
   def reset
     board.reset
     alternate_first_turn
@@ -550,6 +503,58 @@ class TTTGame
     elsif first_turn_choice.start_with?('c')
       computer.marker
     end
+  end
+
+  def clear_screen_and_display_board
+    clear
+    display_board
+  end
+
+  def display_grand_winner
+    if human.score == TTTGame::POINTS_TO_WIN
+      prompt "You are the grand winner!"
+    elsif computer.score == TTTGame::POINTS_TO_WIN
+      prompt "Sorry, the computer is the grand winner."
+    end
+    puts
+  end
+
+  def display_board
+    puts "#{human.name}, you're #{human.marker}. #{computer.name}" \
+      " is #{computer.marker}."
+    display_score
+    puts
+    board.draw
+    puts
+  end
+
+  def display_score
+    puts <<~MSG
+
+    --Current Score-- (First to #{TTTGame::POINTS_TO_WIN} wins!)
+    Player: #{human.score}
+    Computer: #{computer.score}
+
+    MSG
+  end
+
+  def display_result
+    clear_screen_and_display_board
+
+    case board.winning_marker
+    when human.marker    then prompt "You won!"
+    when computer.marker then prompt "Computer won!"
+    else                      prompt "It's a tie!"
+    end
+    puts
+    display_press_enter_to_continue
+  end
+
+  def display_square_num_error
+    clear
+    display_board
+    prompt "Invalid input, please enter a valid square number."
+    puts
   end
 end
 
