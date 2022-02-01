@@ -10,25 +10,25 @@ class CircularQueue
   end
 
   def enqueue(obj)
-    if array[add_idx] == nil
-      array[add_idx] = obj
-      add_idx == (max_size - 1) ? self.add_idx = 0 : self.add_idx += 1
-    else
-      array[add_idx] = obj
-      add_idx == (max_size - 1) ? self.add_idx = 0 : self.add_idx += 1
-      old_idx == (max_size - 1) ? self.old_idx = 0 : self.old_idx += 1
-    end
+    current_value = array[add_idx]
+    array[add_idx] = obj
+    self.add_idx = increment(add_idx)
+    self.old_idx = increment(old_idx) unless current_value.nil?
   end
 
   def dequeue
-    if array.all?(&:nil?)
-      nil
-    else
-      oldest_obj = array[old_idx]
-      array[old_idx] = nil
-      old_idx == (max_size - 1) ? self.old_idx = 0 : self.old_idx += 1
-      oldest_obj
-    end
+    return nil if array.all?(&:nil?)
+
+    oldest_obj = array[old_idx]
+    array[old_idx] = nil
+    self.old_idx = increment(old_idx)
+    oldest_obj
+  end
+
+  private
+
+  def increment(position)
+    position == (max_size - 1) ? 0 : position + 1
   end
 end
 
