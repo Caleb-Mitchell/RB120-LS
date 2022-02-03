@@ -1,13 +1,10 @@
 class GuessingGame
-  MAX_GUESSES = 7
-  MIN_NUM = 1
-  MAX_NUM = 100
 
   attr_accessor :guesses_left
 
-  def initialize
-    @secret_num = rand(MIN_NUM..MAX_NUM)
-    @guesses_left = MAX_GUESSES
+  def initialize(min_num, max_num)
+    @min_num = min_num
+    @max_num = max_num
   end
 
   def play
@@ -19,8 +16,8 @@ class GuessingGame
   private
 
   def reset
-    @secret_num = rand(MIN_NUM..MAX_NUM)
-    @guesses_left = MAX_GUESSES
+    @secret_num = rand(@min_num..@max_num)
+    @guesses_left = Math.log2(@max_num - @min_num).to_i + 1
   end
 
   def play_game
@@ -49,9 +46,9 @@ class GuessingGame
   def request_number
     @user_num = nil
     loop do
-      print "Enter a number between #{MIN_NUM} and #{MAX_NUM}: "
+      print "Enter a number between #{@min_num} and #{@max_num}: "
       @user_num = gets.chomp.to_i
-      break if @user_num.between?(MIN_NUM, MAX_NUM)
+      break if (@min_num..@max_num).cover?(@user_num)
       print "Invalid guess. "
     end
   end
@@ -93,7 +90,5 @@ class GuessingGame
   end
 end
 
-game = GuessingGame.new
-game.play
-
+game = GuessingGame.new(501, 1500)
 game.play
